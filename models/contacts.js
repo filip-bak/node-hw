@@ -1,14 +1,75 @@
-// const fs = require('fs/promises')
+const { nanoid } = require('nanoid')
+const path = require('path')
+const contactsPath = path.resolve(__dirname, 'contacts.json')
 
-const listContacts = async () => {}
+const { getParsedData, writeFile } = require('../utils/fileUtils')
 
-const getContactById = async (contactId) => {}
+const listContacts = async () => {
+  try {
+    const contacts = await getParsedData(contactsPath)
+    return contacts
+  } catch (err) {
+    console.error(err.message)
+  }
+}
 
-const removeContact = async (contactId) => {}
+const getContactById = async (contactId) => {
+  try {
+    const contacts = await getParsedData(contactsPath)
 
-const addContact = async (body) => {}
+    return contacts.find(({ id }) => id === contactId)
+  } catch (err) {
+    console.error(err)
+  }
+}
 
-const updateContact = async (contactId, body) => {}
+const removeContact = async (contactId) => {
+  try {
+    const contacts = await getParsedData(contactsPath)
+
+    const newContacts = contacts.filter(({ id }) => id !== contactId)
+    const deletedContact = contacts.find(({ id }) => id === contactId) || null
+
+    await writeFile(contactsPath, newContacts)
+    return deletedContact
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const addContact = async (body) => {
+  try {
+    const contacts = await getParsedData(contactsPath)
+
+    const newContact = {
+      id: nanoid(),
+      ...body,
+    }
+    contacts.push(newContact)
+
+    await writeFile(contactsPath, contacts)
+    return newContact
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const updateContact = async (contactId, body) => {
+  try {
+    const contacts = await getParsedData(contactsPath)
+    const newContacts = contacts.map((contact) => {
+      return contact.id === contactId ? { ...contact, ...body } : contact
+    })
+
+    const updatedContact =
+      newContacts.find(({ id }) => id === contactId) || null
+
+    await writeFile(contactsPath, newContacts)
+    return updatedContact
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 module.exports = {
   listContacts,
