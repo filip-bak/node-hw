@@ -4,15 +4,16 @@ const {
   removeContact,
   addContact,
   updateContact,
-} = require('../../models/contacts')
+  updateStatusContact,
+} = require('./contacts.service.js')
 
-const getAllContactsHandler = async (req, res) => {
+const getAllContactsHandler = async (_, res) => {
   const contacts = await listContacts()
   return res.json({ contacts })
 }
 
 const getSingleContactHandler = async (req, res) => {
-  const contact = (await getContactById(req.params.contactId)) || null
+  const contact = await getContactById(req.params.contactId)
 
   if (!contact) {
     return res.status(404).json({ message: 'Not found' })
@@ -47,10 +48,21 @@ const updateContactHandler = async (req, res) => {
   return res.json({ contact: contact })
 }
 
+const updateStatusContactHanlder = async (req, res) => {
+  const contact = await updateStatusContact(req.params.contactId, req.body)
+
+  if (!contact) {
+    return res.status(404).json({ message: 'Not found' })
+  }
+
+  return res.json({ contact: contact })
+}
+
 module.exports = {
   getAllContactsHandler,
   getSingleContactHandler,
   addContactHandler,
   updateContactHandler,
+  updateStatusContactHanlder,
   removeContactHandler,
 }
