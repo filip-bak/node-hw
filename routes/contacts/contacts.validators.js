@@ -46,7 +46,7 @@ const contactStatusSchema = Joi.object({
  */
 const validateContact = (requestMethod) => (req, res, next) => {
   if (requestMethod !== 'put' && requestMethod !== 'post') {
-    throw new Error('Unsupported request validation')
+    return next(new Error('Unsupported request validation'))
   }
 
   const contact = req.body

@@ -1,11 +1,6 @@
 const mongoose = require('mongoose')
+const { DatabaseConectionError } = require('./shared/errors')
 const { URI } = require('./config')
-
-class DatabaseConectionError extends Error {
-  constructor() {
-    super('Database connection failed')
-  }
-}
 
 const connect = async () => {
   try {

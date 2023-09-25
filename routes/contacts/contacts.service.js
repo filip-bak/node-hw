@@ -5,7 +5,7 @@ const listContacts = async () => {
   try {
     return await Contact.find()
   } catch (err) {
-    console.error(err.message)
+    console.error(err)
   }
 }
 
@@ -39,7 +39,7 @@ const removeContact = async (contactId) => {
 const addContact = async (body) => {
   try {
     const newContact = new Contact(body)
-    const updatedContact = await newContact.save({ validateBeforeSave: true })
+    const updatedContact = await newContact.save()
 
     return updatedContact
   } catch (err) {

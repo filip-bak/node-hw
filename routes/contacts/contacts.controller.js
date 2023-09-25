@@ -1,3 +1,4 @@
+const { NotFoundError } = require('../../shared/errors.js')
 const {
   listContacts,
   getContactById,
@@ -8,54 +9,78 @@ const {
 } = require('./contacts.service.js')
 
 const getAllContactsHandler = async (_, res) => {
-  const contacts = await listContacts()
-  return res.json({ contacts })
-}
-
-const getSingleContactHandler = async (req, res) => {
-  const contact = await getContactById(req.params.contactId)
-
-  if (!contact) {
-    return res.status(404).json({ message: 'Not found' })
+  try {
+    const contacts = await listContacts()
+    return res.json({ contacts })
+  } catch (err) {
+    console.error(err)
   }
-
-  return res.json({ contact })
 }
 
-const addContactHandler = async (req, res) => {
-  const newContact = await addContact(req.body)
+const getSingleContactHandler = async (req, res, next) => {
+  try {
+    const contact = await getContactById(req.params.contactId)
 
-  return res.status(201).json({ contact: newContact })
-}
+    if (!contact) {
+      throw new NotFoundError()
+    }
 
-const removeContactHandler = async (req, res) => {
-  const contact = await removeContact(req.params.contactId)
-
-  if (!contact) {
-    return res.status(404).json({ message: 'Not found' })
+    return res.json({ contact })
+  } catch (err) {
+    return next(err)
   }
-
-  return res.json({ message: 'contact deleted' })
 }
 
-const updateContactHandler = async (req, res) => {
-  const contact = await updateContact(req.params.contactId, req.body)
+const addContactHandler = async (req, res, next) => {
+  try {
+    const newContact = await addContact(req.body)
 
-  if (!contact) {
-    return res.status(404).json({ message: 'Not found' })
+    return res.status(201).json({ contact: newContact })
+  } catch (err) {
+    return next(err)
   }
-
-  return res.json({ contact: contact })
 }
 
-const updateStatusContactHanlder = async (req, res) => {
-  const contact = await updateStatusContact(req.params.contactId, req.body)
+const removeContactHandler = async (req, res, next) => {
+  try {
+    const contact = await removeContact(req.params.contactId)
 
-  if (!contact) {
-    return res.status(404).json({ message: 'Not found' })
+    if (!contact) {
+      throw new NotFoundError()
+    }
+
+    return res.json({ message: 'contact deleted' })
+  } catch (err) {
+    return next(err)
   }
+}
 
-  return res.json({ contact: contact })
+const updateContactHandler = async (req, res, next) => {
+  try {
+    const contact = await updateContact(req.params.contactId, req.body)
+
+    if (!contact) {
+      throw new NotFoundError()
+    }
+
+    return res.json({ contact: contact })
+  } catch (err) {
+    next(err)
+  }
+}
+
+const updateStatusContactHanlder = async (req, res, next) => {
+  try {
+    const contact = await updateStatusContact(req.params.contactId, req.body)
+
+    if (!contact) {
+      throw new NotFoundError()
+    }
+
+    return res.json({ contact: contact })
+  } catch (err) {
+    next(err)
+  }
 }
 
 module.exports = {

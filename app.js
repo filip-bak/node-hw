@@ -3,6 +3,7 @@ const logger = require('morgan')
 const cors = require('cors')
 
 const contactsRouter = require('./routes/contacts/contacts.router')
+const ErrorHandler = require('./middleware/errorHandler')
 
 const app = express()
 
@@ -15,11 +16,9 @@ app.use(express.json())
 app.use('/api/contacts', contactsRouter)
 
 app.use((req, res) => {
-  res.status(404).json({ message: 'Not found' })
+  res.status(400).json({ message: `Invalid path ${req.path}` })
 })
 
-app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message })
-})
+app.use(ErrorHandler)
 
 module.exports = app
