@@ -1,11 +1,47 @@
 const { ObjectId } = require('bson')
-const { Contact } = require('./contacts.model')
+const errors = require('../../shared/errors')
+const Contact = require('./contacts.model')
+const { isBoolean } = require('./contacts.validators')
+const ApiFeatures = require('./contacts.api')
 
-const listContacts = async () => {
+const listContacts = async (reqQuery) => {
   try {
-    return await Contact.find()
+    const features = new ApiFeatures(Contact.find(), reqQuery)
+      .filter()
+      .favorite()
+      .paginate()
+
+    const contacts = await features.query
+
+    const skip = (+reqQuery.page - 1) * +reqQuery.limit
+    const { error } = features
+
+    if (error) {
+      if (error instanceof errors.InvalidQueryParamsError) {
+        throw new errors.InvalidQueryParamsError()
+      }
+      // if (new Error.CastError()) {
+      //   throw new InvalidQueryParamsError()
+      // }
+    }
+
+    if (reqQuery.page) {
+      const contactsCount = await Contact.countDocuments(
+        features.query._conditions
+      )
+      if (skip >= contactsCount) {
+        throw new errors.PageNotFoundError()
+      }
+    }
+
+    if (!contacts || contacts.length === 0) {
+      throw new errors.ContactsNotFoundError()
+    }
+
+    return contacts
   } catch (err) {
     console.error(err)
+    throw err
   }
 }
 
@@ -68,7 +104,7 @@ const updateStatusContact = async (contactId, body) => {
     const { favorite } = body
     return await updateContact(contactId, { favorite })
   } catch (err) {
-    console.log(err.message)
+    console.error(err.message)
     return null
   }
 }

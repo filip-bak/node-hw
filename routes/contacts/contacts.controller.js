@@ -1,4 +1,5 @@
 const { NotFoundError } = require('../../shared/errors.js')
+
 const {
   listContacts,
   getContactById,
@@ -8,12 +9,17 @@ const {
   updateStatusContact,
 } = require('./contacts.service.js')
 
-const getAllContactsHandler = async (_, res) => {
+const getAllContactsHandler = async (req, res, next) => {
   try {
-    const contacts = await listContacts()
+    let contacts = await listContacts(req.query)
+
+    if (!contacts) {
+      throw new NotFoundError()
+    }
+
     return res.json({ contacts })
   } catch (err) {
-    console.error(err)
+    return next(err)
   }
 }
 
