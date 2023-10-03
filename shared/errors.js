@@ -11,14 +11,22 @@ class UnknownDatabaseError extends Error {
 }
 
 // USER
-class NotAuthorizedError extends Error {
+class AuthenticationError extends Error {
   constructor() {
     super('Not authorized')
+    this.statusCode = 401
+  }
+}
+class UnauthorizedAccessError extends Error {
+  constructor() {
+    super('Unauthorized access.')
+    this.statusCode = 403
   }
 }
 class DuplicatedKeyError extends Error {
   constructor() {
     super('Email address is already in use.')
+    this.statusCode = 409
   }
 }
 
@@ -37,7 +45,7 @@ class PageNotFoundError extends Error {
 }
 class ContactsNotFoundError extends Error {
   constructor() {
-    super('No contacts found')
+    super('Contacts not found.')
     this.statusCode = 404
   }
 }
@@ -56,5 +64,6 @@ module.exports = {
   InvalidQueryParamsError,
   UnknownDatabaseError,
   DuplicatedKeyError,
-  NotAuthorizedError,
+  AuthenticationError,
+  UnauthorizedAccessError,
 }

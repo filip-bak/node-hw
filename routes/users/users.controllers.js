@@ -5,7 +5,6 @@ const {
   getUserById,
 } = require('./users.service')
 const { generateAccessToken } = require('../auth/auth.service')
-const errors = require('../../shared/errors')
 
 const signupHandler = async (req, res, next) => {
   try {
@@ -20,10 +19,6 @@ const signupHandler = async (req, res, next) => {
       },
     })
   } catch (err) {
-    if (err instanceof errors.DuplicatedKeyError) {
-      return res.status(409).json({ message: err.message })
-    }
-
     return next(err)
   }
 }

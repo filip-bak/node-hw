@@ -1,4 +1,4 @@
-const { NotAuthorizedError } = require('../../shared/errors')
+const { AuthenticationError } = require('../../shared/errors')
 const { getUserById } = require('../users/users.service')
 const { verifyToken } = require('./auth.service')
 
@@ -11,14 +11,14 @@ const authMiddleware = async (req, res, next) => {
     const token = extractBearerToken(req.headers)
 
     if (!token) {
-      throw new NotAuthorizedError()
+      throw new AuthenticationError()
     }
 
     const decodedToken = verifyToken(token)
     const user = await getUserById(decodedToken._id)
 
     if (!user || user.token !== token) {
-      throw new NotAuthorizedError()
+      throw new AuthenticationError()
     }
 
     req.user = user

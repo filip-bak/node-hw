@@ -1,6 +1,5 @@
 const JWT = require('jsonwebtoken')
 const { tokenSecret, tokenLifeTime } = require('../../config')
-const { NotAuthorizedError } = require('../../shared/errors')
 
 const generateAccessToken = (userPayload) => {
   return JWT.sign(userPayload, tokenSecret, {
@@ -22,7 +21,7 @@ const verifyToken = (token) => {
       throw new Error('Token expired.')
     }
 
-    throw new NotAuthorizedError()
+    throw new AuthenticationError()
   }
 }
 
