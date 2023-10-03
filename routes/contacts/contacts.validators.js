@@ -1,6 +1,5 @@
 const Joi = require('joi')
 const formatPhoneNumber = require('../../utils/formatPhoneNumber.js')
-const { Error } = require('mongoose')
 
 const httpValidation = {
   post: (schema) => schema.required(),
@@ -42,10 +41,10 @@ const contactStatusSchema = Joi.object({
 })
 
 const querySchema = Joi.object({
-  favorite: Joi.boolean().optional(),
-  limit: Joi.number().min(1).optional(),
-  page: Joi.number().min(1).optional(),
-})
+  favorite: Joi.boolean().invalid('').optional(),
+  limit: Joi.number().min(1).invalid('').optional(),
+  page: Joi.number().min(1).invalid('').optional(),
+}).messages({ 'any.invalid': '{#label} is invalid' })
 
 const validateContact = (requestMethod) => (req, res, next) => {
   if (requestMethod !== 'put' && requestMethod !== 'post') {
@@ -77,12 +76,7 @@ const validateContactStatus = (req, res, next) => {
 }
 
 const validateQuery = (req, res, next) => {
-  const reqQuery = {
-    favorite: req.query.favorite || false,
-    limit: req.query.limit || 15,
-    page: req.query.page || 1,
-  }
-  const { error } = querySchema.validate(reqQuery)
+  const { error } = querySchema.validate(req.query)
 
   if (error) {
     return res.status(400).send({ message: error.message })
@@ -95,9 +89,14 @@ const isBoolean = (string) => {
   return { true: true, false: true }[string] || false
 }
 
+const getSkip = (page, limit) => {
+  return (+page - 1) * +limit
+}
+
 module.exports = {
   validateContact,
   validateContactStatus,
   isBoolean,
   validateQuery,
+  getSkip,
 }
