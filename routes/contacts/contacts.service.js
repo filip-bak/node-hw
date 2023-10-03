@@ -1,40 +1,21 @@
-const { ObjectId } = require('bson')
 const errors = require('../../shared/errors')
 const Contact = require('./contacts.model')
-const { isBoolean } = require('./contacts.validators')
 const ApiFeatures = require('./contacts.api')
 
-const listContacts = async (reqQuery) => {
+const listContacts = async (reqQuery, userId) => {
   try {
     const features = new ApiFeatures(Contact.find(), reqQuery)
-      .filter()
+      .filter({ owner: userId })
+      .populate('owner', '_id')
       .favorite()
       .paginate()
 
     const contacts = await features.query
 
-    const skip = (+reqQuery.page - 1) * +reqQuery.limit
-    const { error } = features
-
-    if (error) {
-      if (error instanceof errors.InvalidQueryParamsError) {
-        throw new errors.InvalidQueryParamsError()
-      }
-      // if (new Error.CastError()) {
-      //   throw new InvalidQueryParamsError()
-      // }
+    if (contacts.length === 0 && reqQuery.page > 1) {
+      throw new errors.PageNotFoundError()
     }
-
-    if (reqQuery.page) {
-      const contactsCount = await Contact.countDocuments(
-        features.query._conditions
-      )
-      if (skip >= contactsCount) {
-        throw new errors.PageNotFoundError()
-      }
-    }
-
-    if (!contacts || contacts.length === 0) {
+    if (contacts.length === 0) {
       throw new errors.ContactsNotFoundError()
     }
 
@@ -47,34 +28,36 @@ const listContacts = async (reqQuery) => {
 
 const getContactById = async (contactId) => {
   try {
-    // Handle the case where contactId is not a valid ObjectId
-    if (!ObjectId.isValid(contactId)) {
-      return null
-    }
-
-    return await Contact.findById(contactId)
+    return await Contact.findById(contactId).populate(
+      'owner',
+      '_id subscription'
+    )
   } catch (err) {
     console.error(err)
+    if (err.kind === 'ObjectId') {
+      throw new errors.NotFoundError()
+    }
     return null
   }
 }
 
 const removeContact = async (contactId) => {
   try {
-    // Handle the case where contactId is not a valid ObjectId
-    if (!ObjectId.isValid(contactId)) {
-      return null
-    }
-
-    return await Contact.findByIdAndRemove(contactId)
+    return await Contact.findByIdAndRemove(contactId).populate(
+      'owner',
+      '_id subscription'
+    )
   } catch (err) {
     console.error(err)
+    if (err.kind === 'ObjectId') {
+      throw new errors.NotFoundError()
+    }
   }
 }
 
-const addContact = async (body) => {
+const addContact = async (body, userId) => {
   try {
-    const newContact = new Contact(body)
+    const newContact = new Contact({ ...body, owner: userId })
     const updatedContact = await newContact.save()
 
     return updatedContact
@@ -85,15 +68,13 @@ const addContact = async (body) => {
 
 const updateContact = async (contactId, body) => {
   try {
-    // Handle the case where contactId is not a valid ObjectId
-    if (!ObjectId.isValid(contactId)) {
-      return null
-    }
-
     return await Contact.findByIdAndUpdate(contactId, body, {
       new: true,
     })
   } catch (err) {
+    if (err.kind === 'ObjectId') {
+      throw new errors.NotFoundError()
+    }
     console.error(err)
     return null
   }
@@ -105,6 +86,9 @@ const updateStatusContact = async (contactId, body) => {
     return await updateContact(contactId, { favorite })
   } catch (err) {
     console.error(err.message)
+    if (err.kind === 'ObjectId') {
+      throw new errors.NotFoundError()
+    }
     return null
   }
 }
