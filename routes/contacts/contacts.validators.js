@@ -19,8 +19,8 @@ const contactSchema = Joi.object({
       'string.pattern.base': 'Phone number must contain only digits',
     }),
   favorite: Joi.boolean()
-    .optional()
-    .alter({ put: (schema) => schema.forbidden() }),
+    .alter({ put: (schema) => schema.forbidden() })
+    .optional(),
 }).alter({
   put: (schema) =>
     schema.or('name', 'email', 'phone').messages({
@@ -33,17 +33,19 @@ const contactSchema = Joi.object({
       'any.required': 'missing required {#label} - field',
     }),
 })
+
 const contactStatusSchema = Joi.object({
   favorite: Joi.boolean().required().messages({
     'any.required': 'missing field favorite',
   }),
 })
 
-/**
- * Middleware to validate a contact based on the HTTP request method (e.g., 'post' or 'put').
- * @param {string} requestMethod - The HTTP request method to tailor the validation.
- * @returns {function} - Express middleware function.
- */
+const querySchema = Joi.object({
+  favorite: Joi.boolean().invalid('').optional(),
+  limit: Joi.number().min(1).invalid('').optional(),
+  page: Joi.number().min(1).invalid('').optional(),
+}).messages({ 'any.invalid': '{#label} is invalid' })
+
 const validateContact = (requestMethod) => (req, res, next) => {
   if (requestMethod !== 'put' && requestMethod !== 'post') {
     return next(new Error('Unsupported request validation'))
@@ -73,7 +75,28 @@ const validateContactStatus = (req, res, next) => {
   return next()
 }
 
+const validateQuery = (req, res, next) => {
+  const { error } = querySchema.validate(req.query)
+
+  if (error) {
+    return res.status(400).send({ message: error.message })
+  }
+
+  return next()
+}
+
+const isBoolean = (string) => {
+  return { true: true, false: true }[string] || false
+}
+
+const getSkip = (page, limit) => {
+  return (+page - 1) * +limit
+}
+
 module.exports = {
   validateContact,
   validateContactStatus,
+  isBoolean,
+  validateQuery,
+  getSkip,
 }

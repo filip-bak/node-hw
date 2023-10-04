@@ -1,33 +1,52 @@
 const express = require('express')
-const {
-  getAllContactsHandler,
-  getSingleContactHandler,
-  addContactHandler,
-  removeContactHandler,
-  updateContactHandler,
-  updateStatusContactHanlder,
-} = require('./contacts.controller')
+const ContactCtrl = require('./contacts.controller')
 const {
   validateContact,
   validateContactStatus,
+  validateQuery,
 } = require('./contacts.validators')
+const { authMiddleware } = require('../auth/auth.middleware')
 
-const router = express.Router()
+const contactsRouter = express.Router()
 
-router.get('/', getAllContactsHandler)
-
-router.get('/:contactId', getSingleContactHandler)
-
-router.post('/', validateContact('post'), addContactHandler)
-
-router.delete('/:contactId', removeContactHandler)
-
-router.put('/:contactId', validateContact('put'), updateContactHandler)
-
-router.patch(
-  '/:contactId/favorite',
-  validateContactStatus,
-  updateStatusContactHanlder
+contactsRouter.get(
+  '/',
+  authMiddleware,
+  validateQuery,
+  ContactCtrl.getAllContactsHandler
 )
 
-module.exports = router
+contactsRouter.get(
+  '/:contactId',
+  authMiddleware,
+  ContactCtrl.getSingleContactHandler
+)
+
+contactsRouter.post(
+  '/',
+  authMiddleware,
+  validateContact('post'),
+  ContactCtrl.addContactHandler
+)
+
+contactsRouter.delete(
+  '/:contactId',
+  authMiddleware,
+  ContactCtrl.removeContactHandler
+)
+
+contactsRouter.put(
+  '/:contactId',
+  authMiddleware,
+  validateContact('put'),
+  ContactCtrl.updateContactHandler
+)
+
+contactsRouter.patch(
+  '/:contactId/favorite',
+  authMiddleware,
+  validateContactStatus,
+  ContactCtrl.updateStatusContactHanlder
+)
+
+module.exports = contactsRouter

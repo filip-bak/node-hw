@@ -1,4 +1,8 @@
-const { NotFoundError } = require('../../shared/errors.js')
+const {
+  NotFoundError,
+  UnauthorizedAccessError,
+} = require('../../shared/errors.js')
+
 const {
   listContacts,
   getContactById,
@@ -8,12 +12,17 @@ const {
   updateStatusContact,
 } = require('./contacts.service.js')
 
-const getAllContactsHandler = async (_, res) => {
+const getAllContactsHandler = async (req, res, next) => {
   try {
-    const contacts = await listContacts()
+    const contacts = await listContacts(req.query, req.user._id)
+
+    if (!contacts) {
+      throw new NotFoundError()
+    }
+
     return res.json({ contacts })
   } catch (err) {
-    console.error(err)
+    return next(err)
   }
 }
 
@@ -24,6 +33,10 @@ const getSingleContactHandler = async (req, res, next) => {
     if (!contact) {
       throw new NotFoundError()
     }
+    if (!req.user._id.equals(contact.owner._id)) {
+      console.error('UnauthorizedAccess')
+      throw new UnauthorizedAccessError()
+    }
 
     return res.json({ contact })
   } catch (err) {
@@ -33,7 +46,12 @@ const getSingleContactHandler = async (req, res, next) => {
 
 const addContactHandler = async (req, res, next) => {
   try {
-    const newContact = await addContact(req.body)
+    const newContact = await addContact(req.body, req.user._id)
+
+    if (!req.user._id.equals(newContact.owner._id)) {
+      console.error('Unauthorized Access')
+      throw new UnauthorizedAccessError()
+    }
 
     return res.status(201).json({ contact: newContact })
   } catch (err) {
@@ -47,6 +65,11 @@ const removeContactHandler = async (req, res, next) => {
 
     if (!contact) {
       throw new NotFoundError()
+    }
+
+    if (!req.user._id.equals(contact.owner._id)) {
+      console.error('UnauthorizedAccess')
+      throw new UnauthorizedAccessError()
     }
 
     return res.json({ message: 'contact deleted' })
@@ -63,6 +86,11 @@ const updateContactHandler = async (req, res, next) => {
       throw new NotFoundError()
     }
 
+    if (!req.user._id.equals(contact.owner._id)) {
+      console.error('UnauthorizedAccess')
+      throw new UnauthorizedAccessError()
+    }
+
     return res.json({ contact: contact })
   } catch (err) {
     next(err)
@@ -75,6 +103,11 @@ const updateStatusContactHanlder = async (req, res, next) => {
 
     if (!contact) {
       throw new NotFoundError()
+    }
+
+    if (!req.user._id.equals(contact.owner._id)) {
+      console.error('UnauthorizedAccess')
+      throw new UnauthorizedAccessError()
     }
 
     return res.json({ contact: contact })
