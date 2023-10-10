@@ -15,11 +15,13 @@ class ApiFeatures {
 
     return this
   }
+
   populate(refKey, select) {
     this.query = this.query.populate(refKey, select)
 
     return this
   }
+
   favorite() {
     const { favorite } = this.queryReq
 
@@ -29,6 +31,7 @@ class ApiFeatures {
 
     return this
   }
+
   paginate() {
     const { page, limit } = this.queryReq
     if (page || limit) {

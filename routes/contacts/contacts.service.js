@@ -12,11 +12,12 @@ const listContacts = async (reqQuery, userId) => {
 
     const contacts = await features.query
 
-    if (contacts.length === 0 && reqQuery.page > 1) {
-      throw new errors.PageNotFoundError()
-    }
     if (contacts.length === 0) {
       throw new errors.ContactsNotFoundError()
+    }
+
+    if (contacts.length === 0 && reqQuery.page > 1) {
+      throw new errors.PageNotFoundError()
     }
 
     return contacts
@@ -43,10 +44,7 @@ const getContactById = async (contactId) => {
 
 const removeContact = async (contactId) => {
   try {
-    return await Contact.findByIdAndRemove(contactId).populate(
-      'owner',
-      '_id subscription'
-    )
+    return await Contact.findByIdAndRemove(contactId).populate('owner', '_id')
   } catch (err) {
     console.error(err)
     if (err.kind === 'ObjectId') {
@@ -58,7 +56,7 @@ const removeContact = async (contactId) => {
 const addContact = async (body, userId) => {
   try {
     const newContact = new Contact({ ...body, owner: userId })
-    const updatedContact = await newContact.save()
+    const updatedContact = (await newContact.save()).populate('owner', '_id')
 
     return updatedContact
   } catch (err) {
@@ -70,25 +68,12 @@ const updateContact = async (contactId, body) => {
   try {
     return await Contact.findByIdAndUpdate(contactId, body, {
       new: true,
-    })
+    }).populate('owner', '_id')
   } catch (err) {
     if (err.kind === 'ObjectId') {
       throw new errors.NotFoundError()
     }
     console.error(err)
-    return null
-  }
-}
-
-const updateStatusContact = async (contactId, body) => {
-  try {
-    const { favorite } = body
-    return await updateContact(contactId, { favorite })
-  } catch (err) {
-    console.error(err.message)
-    if (err.kind === 'ObjectId') {
-      throw new errors.NotFoundError()
-    }
     return null
   }
 }
@@ -99,5 +84,4 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
-  updateStatusContact,
 }
