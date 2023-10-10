@@ -29,6 +29,26 @@ class DuplicatedKeyError extends Error {
     this.statusCode = 409
   }
 }
+class InvalidFileTypeError extends Error {
+  constructor(message) {
+    super('Invalid file type. Only JPEG, JPG, and PNG images are allowed.')
+    this.statusCode = 400
+  }
+}
+class FileRequiredError extends Error {
+  constructor(message) {
+    super('File is required.')
+    this.statusCode = 400
+  }
+}
+
+// CONTACT
+class ContactsNotFoundError extends Error {
+  constructor() {
+    super('Contacts not found.')
+    this.statusCode = 404
+  }
+}
 
 // GENERAL
 class NotFoundError extends Error {
@@ -40,12 +60,6 @@ class NotFoundError extends Error {
 class PageNotFoundError extends Error {
   constructor() {
     super('This page is not Found!')
-    this.statusCode = 404
-  }
-}
-class ContactsNotFoundError extends Error {
-  constructor() {
-    super('Contacts not found.')
     this.statusCode = 404
   }
 }
@@ -66,4 +80,6 @@ module.exports = {
   DuplicatedKeyError,
   AuthenticationError,
   UnauthorizedAccessError,
+  InvalidFileTypeError,
+  FileRequiredError,
 }
