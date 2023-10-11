@@ -1,5 +1,6 @@
 const JWT = require('jsonwebtoken')
 const { tokenSecret, tokenLifeTime } = require('../../config')
+const { AuthenticationError } = require('../../shared/errors')
 
 const generateAccessToken = (userPayload) => {
   return JWT.sign(userPayload, tokenSecret, {
@@ -13,12 +14,11 @@ const verifyToken = (token) => {
   } catch (err) {
     console.error(err)
 
-    if (err instanceof JWT.JsonWebTokenError) {
-      throw new Error('Token is invalid.')
-    }
-
     if (err instanceof JWT.TokenExpiredError) {
       throw new Error('Token expired.')
+    }
+    if (err instanceof JWT.JsonWebTokenError) {
+      throw new Error('Token is invalid.')
     }
 
     throw new AuthenticationError()

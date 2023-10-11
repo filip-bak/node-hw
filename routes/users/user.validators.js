@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const errors = require('../../shared/errors')
 
 const userSchema = Joi.object({
   email: Joi.string().email({ minDomainSegments: 2 }).required(),
@@ -32,7 +33,21 @@ const userSubscriptionValidator = (req, res, next) => {
   return next()
 }
 
+const userAvatarValidator = (req, file, cb) => {
+  const allowedFileTypes = /.(jpeg|jpg|png)$/i
+
+  const extname = allowedFileTypes.test(file.originalname.toLowerCase())
+  const mimetype = allowedFileTypes.test(file.mimetype)
+
+  if (extname && mimetype) {
+    return cb(null, true)
+  } else {
+    return cb(new errors.InvalidFileTypeError(), false)
+  }
+}
+
 module.exports = {
   userValidator,
   userSubscriptionValidator,
+  userAvatarValidator,
 }

@@ -5,6 +5,7 @@ const {
   getUserById,
 } = require('./users.service')
 const { generateAccessToken } = require('../auth/auth.service')
+const { getAvatarPublicURL } = require('./users.avatar')
 
 const signupHandler = async (req, res, next) => {
   try {
@@ -26,7 +27,7 @@ const loginHandaler = async (req, res, next) => {
   try {
     const { email, password } = req.body
     const user = await getUser(email)
-    const isPasswodValid = await user.validatePassword(password)
+    const isPasswodValid = await user?.validatePassword(password)
 
     if (!user || !isPasswodValid) {
       return res.status(401).json({ message: 'Email or password is wrong' })
@@ -88,10 +89,26 @@ const subscriptionHandler = async (req, res, next) => {
   }
 }
 
+const avatarHandler = async (req, res, next) => {
+  try {
+    const { email } = req.user
+
+    const avatarURL = await getAvatarPublicURL(req)
+
+    await updateUser(email, { avatarURL })
+
+    return res.json({ avatarURL })
+  } catch (err) {
+    console.error(err)
+    return next(err)
+  }
+}
+
 module.exports = {
   signupHandler,
   loginHandaler,
   logoutHandler,
   currentHandler,
   subscriptionHandler,
+  avatarHandler,
 }

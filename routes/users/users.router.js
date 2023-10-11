@@ -5,6 +5,8 @@ const {
   userSubscriptionValidator,
 } = require('./user.validators')
 const { authMiddleware } = require('../auth/auth.middleware')
+const processAvatarUpload = require('./middleware/processAvatarUpload')
+
 const userRouter = express.Router()
 
 userRouter.post('/signup', userValidator, userCtrl.signupHandler)
@@ -20,6 +22,13 @@ userRouter.patch(
   authMiddleware,
   userSubscriptionValidator,
   userCtrl.subscriptionHandler
+)
+
+userRouter.patch(
+  '/avatars',
+  authMiddleware,
+  processAvatarUpload,
+  userCtrl.avatarHandler
 )
 
 module.exports = userRouter

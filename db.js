@@ -1,10 +1,12 @@
 const mongoose = require('mongoose')
 const { DatabaseConectionError } = require('./shared/errors')
-const { URI } = require('./config')
+const { URI, DEV_URI, ENV } = require('./config')
 
 const connect = async () => {
   try {
-    await mongoose.connect(URI)
+    const databaseURI = ENV === 'development' ? DEV_URI : URI
+
+    await mongoose.connect(databaseURI)
   } catch (err) {
     console.error(err)
     throw new DatabaseConectionError()

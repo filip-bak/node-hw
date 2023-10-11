@@ -29,8 +29,7 @@ const formatPhoneNumber = (phoneNumber, helpers) => {
   if (obj[number.length]) {
     return obj[number.length]()
   }
-
-  return helpers.error('phone.invalidFormat')
+  return helpers.error('any.invalid')
 }
 
 module.exports = formatPhoneNumber

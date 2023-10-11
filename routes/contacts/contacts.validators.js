@@ -1,5 +1,5 @@
 const Joi = require('joi')
-const formatPhoneNumber = require('../../utils/formatPhoneNumber.js')
+const formatPhoneNumber = require('./utils/formatPhoneNumber.js')
 
 const httpValidation = {
   post: (schema) => schema.required(),

@@ -1,5 +1,6 @@
 const errors = require('../../shared/errors')
 const { ObjectId } = require('bson')
+const gravatar = require('gravatar')
 const User = require('./users.model')
 
 const getUser = async (userEmail) => {
@@ -27,11 +28,14 @@ const getUserById = async (userId) => {
 
 const createUser = async (userData) => {
   try {
-    return await User.create(userData)
+    const { email } = userData
+    const avatarURL = gravatar.url(email, { default: 'retro' }, true)
+
+    return await User.create({ ...userData, avatarURL })
   } catch (err) {
     console.error(err)
 
-    if ((err.code = 1100)) {
+    if (err.code === 1100) {
       throw new errors.DuplicatedKeyError()
     }
 
