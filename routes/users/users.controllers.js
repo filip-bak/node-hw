@@ -1,17 +1,15 @@
-const {
-  createUser,
-  getUser,
-  updateUser,
-  getUserById,
-} = require('./users.service')
+const { createUser, getUser, updateUser } = require('./users.dao')
 const { generateAccessToken } = require('../auth/auth.service')
 const { getAvatarPublicURL } = require('./users.avatar')
+const { sendVerificationMail } = require('./user.mailer')
 
 const signupHandler = async (req, res, next) => {
   try {
     const { email, password } = req.body
 
     const createdUser = await createUser({ email, password })
+
+    await sendVerificationMail(email, createdUser.verificationToken)
 
     return res.status(201).json({
       user: {
@@ -31,6 +29,9 @@ const loginHandaler = async (req, res, next) => {
 
     if (!user || !isPasswodValid) {
       return res.status(401).json({ message: 'Email or password is wrong' })
+    }
+    if (!user.verify) {
+      return res.status(403).json({ message: 'User is not verified' })
     }
 
     const userPayload = {
@@ -103,6 +104,49 @@ const avatarHandler = async (req, res, next) => {
     return next(err)
   }
 }
+const verifyHandler = async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params
+
+    const user = await getUser({ verificationToken })
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    if (user.verify) {
+      return res.status(400).json({ message: 'User is already verified.' })
+    }
+
+    await updateUser(user.email, { verify: true, verificationToken: null })
+
+    return res.status(200).json({ message: 'Verification successful' })
+  } catch (err) {
+    console.error(err)
+    return next(err)
+  }
+}
+
+const resendVerificationHandler = async (req, res, next) => {
+  try {
+    const { email } = req.body
+
+    const user = await getUser({ email })
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    if (user.verify) {
+      return res.status(400).json({ message: 'User is already verified.' })
+    }
+
+    await sendVerificationMail(email, user.verificationToken)
+
+    return res.status(200).json({ message: 'Verification email sent' })
+  } catch (err) {
+    console.error(err)
+    return next(err)
+  }
+}
 
 module.exports = {
   signupHandler,
@@ -111,4 +155,6 @@ module.exports = {
   currentHandler,
   subscriptionHandler,
   avatarHandler,
+  verifyHandler,
+  resendVerificationHandler,
 }
