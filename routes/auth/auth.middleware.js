@@ -1,5 +1,5 @@
 const { AuthenticationError } = require('../../shared/errors')
-const { getUserById } = require('../users/users.service')
+const { getUser } = require('../users/users.dao')
 const { verifyToken } = require('./auth.service')
 
 const extractBearerToken = (headers) => {
@@ -15,7 +15,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const decodedToken = verifyToken(token)
-    const user = await getUserById(decodedToken._id)
+    const user = await getUser({ _id: decodedToken._id })
 
     if (!user || user.token !== token) {
       throw new AuthenticationError()

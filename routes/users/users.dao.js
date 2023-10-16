@@ -1,24 +1,11 @@
 const errors = require('../../shared/errors')
-const { ObjectId } = require('bson')
 const gravatar = require('gravatar')
 const User = require('./users.model')
+const { nanoid } = require('nanoid')
 
-const getUser = async (userEmail) => {
+const getUser = async (filter) => {
   try {
-    return await User.findOne({ email: userEmail })
-  } catch (err) {
-    console.error(err)
-
-    throw new errors.UnknownDatabaseError()
-  }
-}
-const getUserById = async (userId) => {
-  try {
-    if (!ObjectId.isValid(userId)) {
-      return null
-    }
-
-    return await User.findById(userId)
+    return await User.findOne(filter)
   } catch (err) {
     console.error(err)
 
@@ -30,12 +17,18 @@ const createUser = async (userData) => {
   try {
     const { email } = userData
     const avatarURL = gravatar.url(email, { default: 'retro' }, true)
+    const verificationToken = nanoid(30)
 
-    return await User.create({ ...userData, avatarURL })
+    return await User.create({
+      ...userData,
+      avatarURL,
+      verify: false,
+      verificationToken,
+    })
   } catch (err) {
     console.error(err)
 
-    if (err.code === 1100) {
+    if (err.code === 11000) {
       throw new errors.DuplicatedKeyError()
     }
 
@@ -54,4 +47,4 @@ const updateUser = async (userEmail, userData) => {
   }
 }
 
-module.exports = { getUser, getUserById, createUser, updateUser }
+module.exports = { getUser, createUser, updateUser }

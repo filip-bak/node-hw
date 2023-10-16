@@ -26,7 +26,7 @@ const signupHandler = async (req, res, next) => {
 const loginHandaler = async (req, res, next) => {
   try {
     const { email, password } = req.body
-    const user = await getUser(email)
+    const user = await getUser({ email })
     const isPasswodValid = await user?.validatePassword(password)
 
     if (!user || !isPasswodValid) {
@@ -61,7 +61,7 @@ const logoutHandler = async (req, res, next) => {
 const currentHandler = async (req, res, next) => {
   try {
     const { _id } = req.user
-    const user = await getUserById(_id)
+    const user = await getUser({ _id })
 
     if (!user) {
       return res.status(401).json({ message: 'Not authorized' })
