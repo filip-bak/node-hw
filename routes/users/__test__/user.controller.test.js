@@ -1,15 +1,15 @@
 const userCtrl = require('../users.controllers')
 const { generateAccessToken } = require('../../auth/auth.service')
-const { getUser } = require('../users.service')
+const { getUser } = require('../users.dao')
 const createMockObjects = require('../../../shared/testUtils')
 const { default: mongoose } = require('mongoose')
 
-jest.mock('../users.service.js', () => ({
+jest.mock('../users.dao', () => ({
   getUser: jest.fn(),
   updateUser: jest.fn(),
 }))
 
-jest.mock('../../auth/auth.service.js', () => ({
+jest.mock('../../auth/auth.service', () => ({
   generateAccessToken: jest.fn(),
 }))
 
@@ -37,6 +37,8 @@ describe('user', () => {
         jest.clearAllMocks()
         getUser.mockResolvedValueOnce({
           ...userPayload,
+          verify: true,
+          verificationToken: null,
           validatePassword: jest.fn(() => true),
         })
         generateAccessToken.mockReturnValueOnce(accessToken)
