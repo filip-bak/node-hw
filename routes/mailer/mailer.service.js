@@ -11,8 +11,17 @@ const transporter = nodemailer.createTransport({
 
 const sendMail = async (options) => {
   try {
-    await transporter.sendMail(options)
-    return
+    const emailInfo = await transporter.sendMail(options)
+
+    if (emailInfo.accepted.length > 0) {
+      return {
+        success: true,
+        message: 'Email sent successfully.',
+        info: emailInfo,
+      }
+    }
+
+    return { success: false, message: 'Email sending failed.' }
   } catch (err) {
     console.error(err)
     throw new Error('Failed to send verification email.')

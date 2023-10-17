@@ -22,8 +22,16 @@ const sendVerificationMail = async (email, verificationToken) => {
     `,
   }
 
-  await sendMail(mailOptions)
-  return
+  const emailStatus = await sendMail(mailOptions)
+
+  if (emailStatus.success) {
+    console.log(emailStatus.message)
+  } else {
+    console.error(emailStatus.message)
+    throw new Error(emailStatus.message)
+  }
+
+  return emailStatus
 }
 
 module.exports = {
