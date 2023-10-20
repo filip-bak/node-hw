@@ -8,6 +8,9 @@ const userSchema = Joi.object({
 const userSubscriptionSchema = Joi.object({
   subscription: Joi.string().valid('starter', 'pro', 'business').required(),
 })
+const userVerifySchema = Joi.object({
+  email: Joi.string().email({ minDomainSegments: 2 }).required(),
+})
 
 const userValidator = (req, res, next) => {
   const { error } = userSchema.validate(req.body)
@@ -46,8 +49,21 @@ const userAvatarValidator = (req, file, cb) => {
   }
 }
 
+const userVerifyValidator = (req, res, next) => {
+  const { error } = userVerifySchema.validate(req.body)
+
+  if (error) {
+    return res.status(400).json({
+      message: error.message,
+    })
+  }
+
+  return next()
+}
+
 module.exports = {
   userValidator,
   userSubscriptionValidator,
   userAvatarValidator,
+  userVerifyValidator,
 }
